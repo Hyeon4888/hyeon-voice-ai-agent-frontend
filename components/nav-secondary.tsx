@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import * as React from "react"
 import { type Icon } from "@tabler/icons-react"
@@ -9,7 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/shadcn/sidebar"
 
 export function NavSecondary({
   items,
@@ -40,3 +40,6 @@ export function NavSecondary({
     </SidebarGroup>
   )
 }
+
+
+

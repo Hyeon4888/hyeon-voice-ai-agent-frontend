@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import * as React from "react"
 import { AppSidebar } from "@/components/app-sidebar"
@@ -6,7 +6,7 @@ import { SiteHeader } from "@/components/site-header"
 import {
     SidebarInset,
     SidebarProvider,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/shadcn/sidebar"
 
 export default function TeamPage() {
     return (
@@ -31,3 +31,6 @@ export default function TeamPage() {
         </SidebarProvider>
     )
 }
+
+
+

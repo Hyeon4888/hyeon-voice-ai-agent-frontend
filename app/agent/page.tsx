@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import * as React from "react"
 import { AppSidebar } from "@/components/app-sidebar"
@@ -8,10 +8,10 @@ import { AgentConfig } from "@/components/agent/agent-config"
 import {
     SidebarInset,
     SidebarProvider,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/shadcn/sidebar"
 
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/shadcn/button"
 import { getConnectionDetails } from "@/lib/api/agent/token";
 import { Play } from "lucide-react"
 
@@ -92,5 +92,8 @@ export default function AgentPage() {
         </SidebarProvider>
     )
 }
+
+
+
 
 

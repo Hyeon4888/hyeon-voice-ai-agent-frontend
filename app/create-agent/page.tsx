@@ -1,7 +1,7 @@
-"use client"
+﻿"use client"
 
 import * as React from "react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/shadcn/button"
 import {
     Card,
     CardContent,
@@ -9,17 +9,17 @@ import {
     CardFooter,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/shadcn/card"
+import { Input } from "@/components/ui/shadcn/input"
+import { Label } from "@/components/ui/shadcn/label"
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/shadcn/select"
+import { Textarea } from "@/components/ui/shadcn/textarea"
 
 export default function CreateAgentPage() {
     return (
@@ -91,3 +91,6 @@ export default function CreateAgentPage() {
         </div>
     )
 }
+
+
+

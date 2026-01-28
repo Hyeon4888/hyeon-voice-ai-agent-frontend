@@ -1,16 +1,16 @@
-"use client"
+﻿"use client"
 
 import { IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react"
 import { usePathname } from "next/navigation"
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/shadcn/button"
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/shadcn/sidebar"
 
 export function NavMain({
   items,
@@ -43,3 +43,6 @@ export function NavMain({
     </SidebarGroup>
   )
 }
+
+
+

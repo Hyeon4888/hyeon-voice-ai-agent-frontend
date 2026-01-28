@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import * as React from "react"
 import { Command as CommandPrimitive } from "cmdk"
@@ -11,7 +11,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/shadcn/dialog"
 
 function Command({
   className,
@@ -182,3 +182,6 @@ export {
   CommandShortcut,
   CommandSeparator,
 }
+
+
+

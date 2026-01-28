@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import {
   IconDots,
@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/shadcn/dropdown-menu"
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -23,7 +23,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/shadcn/sidebar"
 
 export function NavDocuments({
   items,
@@ -90,3 +90,6 @@ export function NavDocuments({
     </SidebarGroup>
   )
 }
+
+
+

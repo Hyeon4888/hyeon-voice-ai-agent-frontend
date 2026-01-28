@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import * as React from "react"
 import type * as LabelPrimitive from "@radix-ui/react-label"
@@ -14,7 +14,7 @@ import {
 } from "react-hook-form"
 
 import { cn } from "@/lib/utils"
-import { Label } from "@/components/ui/label"
+import { Label } from "@/components/ui/shadcn/label"
 
 const Form = FormProvider
 
@@ -165,3 +165,6 @@ export {
   FormMessage,
   FormField,
 }
+
+
+

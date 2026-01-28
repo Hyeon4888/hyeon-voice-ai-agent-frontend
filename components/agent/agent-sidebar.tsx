@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import * as React from "react"
 import { IconPlus, IconRobot } from "@tabler/icons-react"
@@ -14,7 +14,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarSeparator,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/shadcn/sidebar"
 
 import { Agent } from "@/lib/api/agent/crud-agent"
 
@@ -59,3 +59,6 @@ export function AgentSidebar({ agents, ...props }: AgentSidebarProps) {
         </Sidebar>
     )
 }
+
+
+

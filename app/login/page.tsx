@@ -1,10 +1,10 @@
-"use client"
+﻿"use client"
 
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/shadcn/button"
 import {
     Card,
     CardContent,
@@ -12,9 +12,9 @@ import {
     CardFooter,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/shadcn/card"
+import { Input } from "@/components/ui/shadcn/input"
+import { Label } from "@/components/ui/shadcn/label"
 import { useAuth } from "@/components/providers/auth-provider"
 import { signIn } from "@/lib/api/auth/auth"
 import { toast } from "sonner"
@@ -107,3 +107,6 @@ export default function LoginPage() {
         </div>
     )
 }
+
+
+
