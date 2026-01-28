@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Cookies from "js-cookie"
-import api from "@/lib/api"
+import { getCurrentUser } from "@/lib/api/auth/auth"
 
 interface User {
     id: number
@@ -36,8 +36,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return
             }
 
-            const response = await api.get("/auth/me")
-            setUser(response.data)
+            const user = await getCurrentUser()
+            setUser(user)
         } catch (error) {
             console.error("Failed to fetch user", error)
             Cookies.remove("token")

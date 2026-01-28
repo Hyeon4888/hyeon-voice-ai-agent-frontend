@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/components/providers/auth-provider"
-import api from "@/lib/api"
+import { signUp } from "@/lib/api/auth/auth"
 import { toast } from "sonner"
 
 export default function RegisterPage() {
@@ -35,8 +35,8 @@ export default function RegisterPage() {
             // class UserCreate(BaseModel): name: str, email: EmailStr, password: str
             // @router.post("/signup", response_model=Token)
 
-            const response = await api.post("/auth/signup", { name, email, password })
-            signup(response.data.access_token)
+            const response = await signUp({ name, email, password })
+            signup(response.access_token)
             toast.success("Account created successfully")
         } catch (error: any) {
             console.error(error)

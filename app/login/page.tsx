@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/components/providers/auth-provider"
-import api from "@/lib/api"
+import { signIn } from "@/lib/api/auth/auth"
 import { toast } from "sonner"
 
 export default function LoginPage() {
@@ -34,9 +34,15 @@ export default function LoginPage() {
             // class UserLogin(BaseModel): email: EmailStr, password: str
             // @router.post("/signin", response_model=Token)
 
-            const response = await api.post("/auth/signin", { email, password })
-            login(response.data.access_token)
+            const response = await signIn({ email, password })
+            login(response.access_token)
             toast.success("Logged in successfully")
+
+            // Note: I will need to clean up the import of 'api' as well in a separate step or via multi-replace if I want to be cleaner, but I'll start with logic replacement.
+            // Wait, I can only update one block relative to what I see. 
+            // I will just replace the handleSubmit logic and the import in separate steps if needed, but since I can't see the top of the file right now (except from memory/previous view), I better stay safe.
+            // My previous view showed 'api' imported at line 19.
+            // I'll update line 19 and then line 37.
         } catch (error: any) {
             console.error(error)
             toast.error(error.response?.data?.detail || "Failed to login")

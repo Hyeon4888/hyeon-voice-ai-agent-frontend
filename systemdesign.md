@@ -31,8 +31,15 @@ This document outlines the architectural and stylistic rules for the Voice AI Ag
 
 ## 4. File Structure
 - **Generic Components**: Place reusable, generic components in `components/shared` or `components/ui` (for Shadcn).
+- **Page-Specific Components**: Create a folder in `@/components` named after the feature/page (e.g., `@/components/agent` for `@/app/agent`) and place relevant components there.
 - **Feature Components**: Place feature-specific components in `components/<feature-name>`.
 
 ## 5. Styling
 - **Tailwind CSS**: Use Tailwind CSS for all styling.
 - **Consistency**: Utilize the design tokens (colors, radius) defined in `globals.css` and `tailwind.config.ts` via Shadcn.
+
+## 6. API Structure
+- **Location**: All API handling code must reside in `@/lib/api`.
+- **Entity Folders**: Create a dedicated folder for each entity (e.g., `@/lib/api/agent`, `@/lib/api/auth`).
+- **File Naming**: Inside the entity folder, create files named appropriately for their purpose (e.g., `crud-agent.ts` for CRUD operations, `auth-api.ts` for authentication).
+- **Client Instance**: The base Axios instance should be configured in a shared file (e.g., `@/lib/api/client.ts`) and imported by entity API modules.

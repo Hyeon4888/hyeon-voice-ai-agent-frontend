@@ -16,23 +16,13 @@ import {
     SidebarSeparator,
 } from "@/components/ui/sidebar"
 
-// Dummy data for agents
-const agents = [
-    {
-        name: "Customer Support",
-        id: "agent-1",
-    },
-    {
-        name: "Sales Rep",
-        id: "agent-2",
-    },
-    {
-        name: "Booking Assistant",
-        id: "agent-3",
-    },
-]
+import { Agent } from "@/lib/api/agent/crud-agent"
 
-export function AgentSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+interface AgentSidebarProps extends React.ComponentProps<typeof Sidebar> {
+    agents: Agent[]
+}
+
+export function AgentSidebar({ agents, ...props }: AgentSidebarProps) {
     return (
         <Sidebar
             collapsible="none"
@@ -54,7 +44,7 @@ export function AgentSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                         <SidebarMenu>
                             {agents.map((agent) => (
                                 <SidebarMenuItem key={agent.id}>
-                                    <SidebarMenuButton asChild isActive={agent.id === "agent-1"}>
+                                    <SidebarMenuButton asChild>
                                         <a href="#">
                                             <IconRobot />
                                             <span>{agent.name}</span>
