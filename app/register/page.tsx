@@ -19,8 +19,9 @@ import { useAuth } from "@/components/providers/auth-provider"
 import api from "@/lib/api"
 import { toast } from "sonner"
 
-export default function LoginPage() {
-    const { login } = useAuth()
+export default function RegisterPage() {
+    const { signup } = useAuth()
+    const [name, setName] = React.useState("")
     const [email, setEmail] = React.useState("")
     const [password, setPassword] = React.useState("")
     const [loading, setLoading] = React.useState(false)
@@ -31,15 +32,15 @@ export default function LoginPage() {
         setLoading(true)
         try {
             // User request:
-            // class UserLogin(BaseModel): email: EmailStr, password: str
-            // @router.post("/signin", response_model=Token)
+            // class UserCreate(BaseModel): name: str, email: EmailStr, password: str
+            // @router.post("/signup", response_model=Token)
 
-            const response = await api.post("/auth/signin", { email, password })
-            login(response.data.access_token)
-            toast.success("Logged in successfully")
+            const response = await api.post("/auth/signup", { name, email, password })
+            signup(response.data.access_token)
+            toast.success("Account created successfully")
         } catch (error: any) {
             console.error(error)
-            toast.error(error.response?.data?.detail || "Failed to login")
+            toast.error(error.response?.data?.detail || "Failed to create account")
         } finally {
             setLoading(false)
         }
@@ -49,13 +50,25 @@ export default function LoginPage() {
         <div className="flex min-h-screen items-center justify-center bg-muted/50 px-4">
             <Card className="w-full max-w-md shadow-lg border-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <CardHeader className="space-y-1 text-center">
-                    <CardTitle className="text-2xl font-bold tracking-tight">Sign in</CardTitle>
+                    <CardTitle className="text-2xl font-bold tracking-tight">Create an account</CardTitle>
                     <CardDescription>
-                        Enter your email and password to access your account
+                        Enter your information to create an account
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Full Name</Label>
+                            <Input
+                                id="name"
+                                type="text"
+                                placeholder="John Doe"
+                                required
+                                className="bg-background/50"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                            />
+                        </div>
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
                             <Input
@@ -69,15 +82,7 @@ export default function LoginPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor="password">Password</Label>
-                                <Link
-                                    href="/forgot-password"
-                                    className="text-sm font-medium text-primary hover:underline underline-offset-4"
-                                >
-                                    Forgot password?
-                                </Link>
-                            </div>
+                            <Label htmlFor="password">Password</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -90,10 +95,10 @@ export default function LoginPage() {
                     </CardContent>
                     <CardFooter className="flex flex-col gap-4">
                         <Button className="w-full font-semibold" size="lg" disabled={loading}>
-                            {loading ? "Signing in..." : "Sign in"}
+                            {loading ? "Creating account..." : "Create account"}
                         </Button>
                         <div className="text-sm text-center text-muted-foreground">
-                            Don't have an account? <Link href="/register" className="font-medium text-primary hover:underline underline-offset-4">Sign up</Link>
+                            Already have an account? <Link href="/login" className="font-medium text-primary hover:underline underline-offset-4">Sign in</Link>
                         </div>
                     </CardFooter>
                 </form>
