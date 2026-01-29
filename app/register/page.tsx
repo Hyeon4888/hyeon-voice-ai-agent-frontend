@@ -36,7 +36,7 @@ export default function RegisterPage() {
             // @router.post("/signup", response_model=Token)
 
             const response = await signUp({ name, email, password })
-            signup(response.access_token)
+            signup(response.access_token, response.refresh_token)
             toast.success("Account created successfully")
         } catch (error: any) {
             console.error(error)

@@ -14,9 +14,9 @@ interface User {
 interface AuthContextType {
     user: User | null
     loading: boolean
-    login: (token: string) => void
+    login: (token: string, refreshToken: string) => void
     logout: () => void
-    signup: (token: string) => void
+    signup: (token: string, refreshToken: string) => void
 }
 
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined)
@@ -51,15 +51,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         fetchUser()
     }, [fetchUser])
 
-    const login = (token: string) => {
+    const login = (token: string, refreshToken: string) => {
         Cookies.set("token", token, { expires: 7 })
+        Cookies.set("refresh_token", refreshToken, { expires: 30 })
         fetchUser().then(() => {
             router.push("/")
         })
     }
 
-    const signup = (token: string) => {
+    const signup = (token: string, refreshToken: string) => {
         Cookies.set("token", token, { expires: 7 })
+        Cookies.set("refresh_token", refreshToken, { expires: 30 })
         fetchUser().then(() => {
             router.push("/")
         })
@@ -67,6 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const logout = () => {
         Cookies.remove("token")
+        Cookies.remove("refresh_token")
         setUser(null)
         router.push("/login")
     }

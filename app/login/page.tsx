@@ -35,7 +35,7 @@ export default function LoginPage() {
             // @router.post("/signin", response_model=Token)
 
             const response = await signIn({ email, password })
-            login(response.access_token)
+            login(response.access_token, response.refresh_token)
             toast.success("Logged in successfully")
 
             // Note: I will need to clean up the import of 'api' as well in a separate step or via multi-replace if I want to be cleaner, but I'll start with logic replacement.

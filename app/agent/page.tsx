@@ -24,6 +24,8 @@ export default function AgentPage() {
     const [token, setToken] = React.useState<string | null>(null);
     const [url, setUrl] = React.useState<string | null>(null);
     const [agents, setAgents] = React.useState<any[]>([]);
+    const [selectedAgent, setSelectedAgent] = React.useState<any | null>(null);
+    const [loadingAgent, setLoadingAgent] = React.useState(false);
 
     React.useEffect(() => {
         const fetchAgents = async () => {
@@ -37,6 +39,24 @@ export default function AgentPage() {
         };
         fetchAgents();
     }, []);
+
+    const handleSelectAgent = async (agent: any) => {
+        setLoadingAgent(true);
+        try {
+            console.log("Selected agent:", agent); // Debug: see what data we have
+
+            // Ensure type is available, default to 'realtime' if not specified
+            const agentType = agent.type || 'realtime';
+
+            const { getAgent } = await import("@/lib/api/agent/crud-agent");
+            const agentData = await getAgent(agent.id, agentType);
+            setSelectedAgent(agentData);
+        } catch (error) {
+            console.error("Failed to fetch agent details", error);
+        } finally {
+            setLoadingAgent(false);
+        }
+    };
 
     const handlePlayAgent = async () => {
         setIsConnecting(true);
@@ -64,7 +84,11 @@ export default function AgentPage() {
             }
         >
             <AppSidebar variant="inset" />
-            <AgentSidebar agents={agents} />
+            <AgentSidebar
+                agents={agents}
+                selectedAgentId={selectedAgent?.id}
+                onSelectAgent={handleSelectAgent}
+            />
             <SidebarInset>
                 <SiteHeader title="Agent" />
                 <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -85,7 +109,7 @@ export default function AgentPage() {
                     {isConnected && token && url ? (
                         <VoiceAgent token={token} url={url} />
                     ) : (
-                        <AgentConfig />
+                        <AgentConfig agent={selectedAgent} loading={loadingAgent} />
                     )}
                 </div>
             </SidebarInset>

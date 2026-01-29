@@ -27,6 +27,7 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/ui/shadcn/tabs"
+import api from "@/lib/api/client"
 
 const defaultPrompt = `You are Sarah, a professional and polite receptionist for Gemini Health Clinic.
 Your primary role is to assist patients with scheduling, rescheduling, or canceling their medical appointments.
@@ -70,63 +71,105 @@ Assist the patient in managing their clinic visits. You will accomplish the foll
 - Provide guidance in small steps and confirm completion before continuing.
 - Summarize key results when closing a topic.`
 
-export function AgentConfig() {
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const form = e.target as HTMLFormElement;
-        const formData = new FormData(form);
-        const name = formData.get("name") as string;
-        const model = formData.get("model") as string || "openai-realtime"; // Select might not be in formData if not native select
-        // For Shadcn select, we might need controlled state or hidden input.
-        // Simplifying for now: assuming native inputs or easy extraction.
-        // Actually Shadcn Select is not a native select, so FormData won't pick it up directly unless we used a hidden input.
-        // Let's use controlled state for Selects to be safe.
-    }
-    // ...
-    // Wait, replacing the whole function is better to introduce state.
-    // I will rewrite the component to use state for form values.
-
-    const [name, setName] = React.useState("my-voice-assistant");
+export function AgentConfig({ agent, loading, onSuccess }: {
+    agent?: any,
+    loading?: boolean,
+    onSuccess?: () => void
+}) {
+    const [name, setName] = React.useState("");
     const [model, setModel] = React.useState("openai-realtime");
     const [voice, setVoice] = React.useState("coral");
-    const [prompt, setPrompt] = React.useState(defaultPrompt);
-    const [loading, setLoading] = React.useState(false);
+    const [prompt, setPrompt] = React.useState("");
+    const [greetingPrompt, setGreetingPrompt] = React.useState("");
+    const [llmWebsocketUrl, setLlmWebsocketUrl] = React.useState("");
+    const [saving, setSaving] = React.useState(false);
+
+    // Update form when agent data is loaded
+    React.useEffect(() => {
+        if (agent) {
+            setName(agent.name || "");
+            if (agent.type === 'realtime') {
+                setModel(agent.model || "openai-realtime");
+                setVoice(agent.voice || "coral");
+                setPrompt(agent.system_prompt || "");
+                setGreetingPrompt(agent.greeting_prompt || "");
+            } else if (agent.type === 'custom') {
+                setLlmWebsocketUrl(agent.llm_websocket_url || "");
+            }
+        } else {
+            // Reset to empty when no agent selected
+            setName("");
+            setPrompt("");
+            setGreetingPrompt("");
+        }
+    }, [agent]);
 
     const onSave = async () => {
-        setLoading(true);
+        if (!agent || !agent.id) {
+            alert("No agent selected");
+            return;
+        }
+
+        setSaving(true);
         try {
-            const { createAgent } = await import("@/lib/api/agent/crud-agent");
-            await createAgent({
-                name,
-                config: {
+            if (agent.type === 'realtime') {
+                // Call the realtime agent update endpoint
+                await api.put(`/agents/update/realtime/${agent.id}`, {
                     model,
                     voice,
-                    instructions: prompt,
-                }
-            });
-            alert("Agent created successfully!");
-        } catch (error) {
+                    system_prompt: prompt,
+                    greeting_prompt: greetingPrompt,
+                });
+            } else if (agent.type === 'custom') {
+                // Call the custom agent update endpoint
+                await api.put(`/agents/update/custom/${agent.id}`, {
+                    llm_websocket_url: llmWebsocketUrl,
+                });
+            } else {
+                throw new Error(`Unknown agent type: ${agent.type}`);
+            }
+
+            alert("Agent configuration updated successfully!");
+            if (onSuccess) {
+                onSuccess();
+            }
+        } catch (error: any) {
             console.error(error);
-            alert("Failed to create agent");
+            const errorMessage = error.response?.data?.detail || "Failed to update agent";
+            alert(errorMessage);
         } finally {
-            setLoading(false);
+            setSaving(false);
         }
     };
 
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             <div className="col-span-4 lg:col-span-5 space-y-4">
-                <Tabs defaultValue="realtime" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-4">
-                        <TabsTrigger value="realtime">Realtime Model</TabsTrigger>
-                        <TabsTrigger value="customize">Customize</TabsTrigger>
-                    </TabsList>
+                <Tabs
+                    value={agent?.type === 'custom' ? 'customize' : 'realtime'}
+                    className="w-full"
+                >
+                    {agent && (
+                        <TabsList className="grid w-full grid-cols-1 mb-4">
+                            {agent.type === 'realtime' && (
+                                <TabsTrigger value="realtime">Realtime Model</TabsTrigger>
+                            )}
+                            {agent.type === 'custom' && (
+                                <TabsTrigger value="customize">Customize</TabsTrigger>
+                            )}
+                        </TabsList>
+                    )}
                     <TabsContent value="realtime">
                         <Card>
                             <CardHeader>
                                 <CardTitle>Agent Configuration</CardTitle>
                                 <CardDescription>
-                                    Configure your voice AI agent settings to match the backend.
+                                    {loading
+                                        ? "Loading agent configuration..."
+                                        : agent
+                                            ? "Configure your voice AI agent settings."
+                                            : "Select an agent from the sidebar to view and edit its configuration."
+                                    }
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -171,30 +214,32 @@ export function AgentConfig() {
                                     </div>
 
                                     <div className="flex flex-col space-y-1.5">
+                                        <Label htmlFor="greeting-prompt">Greeting Prompt</Label>
+                                        <Textarea
+                                            id="greeting-prompt"
+                                            className="min-h-[100px] font-mono text-sm"
+                                            value={greetingPrompt}
+                                            onChange={(e) => setGreetingPrompt(e.target.value)}
+                                            placeholder="Enter the initial greeting message (optional)..."
+                                        />
+                                        <p className="text-sm text-muted-foreground">The message your agent will say when the conversation starts.</p>
+                                    </div>
+
+                                    <div className="flex flex-col space-y-1.5">
                                         <Label htmlFor="prompt">System Prompt</Label>
                                         <Textarea
                                             id="prompt"
                                             className="min-h-[300px] font-mono text-sm"
                                             value={prompt}
                                             onChange={(e) => setPrompt(e.target.value)}
+                                            placeholder="Enter the system prompt for your agent..."
                                         />
-                                    </div>
-
-                                    <div className="flex items-center justify-between rounded-lg border p-4">
-                                        <div className="space-y-0.5">
-                                            <Label className="text-base">Appointment Tools</Label>
-                                            <CardDescription>
-                                                Enable booking, checking availability, and call forwarding (AppointmentTools).
-                                            </CardDescription>
-                                        </div>
-                                        <Switch defaultChecked />
                                     </div>
                                 </div>
                             </CardContent>
-                            <CardFooter className="flex justify-between">
-                                <Button variant="outline">Discard Changes</Button>
-                                <Button onClick={onSave} disabled={loading}>
-                                    {loading ? "Saving..." : "Save Configuration"}
+                            <CardFooter className="flex justify-end">
+                                <Button onClick={onSave} disabled={saving}>
+                                    {saving ? "Saving..." : "Save Configuration"}
                                 </Button>
                             </CardFooter>
                         </Card>
@@ -202,29 +247,50 @@ export function AgentConfig() {
                     <TabsContent value="customize">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Customize</CardTitle>
+                                <CardTitle>Custom Agent Configuration</CardTitle>
                                 <CardDescription>
-                                    Advanced customization settings.
+                                    {loading
+                                        ? "Loading agent configuration..."
+                                        : agent
+                                            ? "Configure your custom voice AI agent."
+                                            : "Select an agent from the sidebar to view and edit its configuration."
+                                    }
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="min-h-[400px] flex items-center justify-center text-muted-foreground">
-                                Customize settings coming soon.
+                            <CardContent>
+                                <div className="grid w-full items-center gap-4">
+                                    <div className="flex flex-col space-y-1.5">
+                                        <Label htmlFor="custom-name">Agent Name</Label>
+                                        <Input
+                                            id="custom-name"
+                                            placeholder="Agent Name"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                        />
+                                        <p className="text-sm text-muted-foreground">The name used in CLI and logs.</p>
+                                    </div>
+
+                                    <div className="flex flex-col space-y-1.5">
+                                        <Label htmlFor="llm-websocket-url">LLM WebSocket URL</Label>
+                                        <Input
+                                            id="llm-websocket-url"
+                                            placeholder="wss://your-llm-websocket-endpoint.com"
+                                            value={llmWebsocketUrl}
+                                            onChange={(e) => setLlmWebsocketUrl(e.target.value)}
+                                        />
+                                        <p className="text-sm text-muted-foreground">WebSocket endpoint for your custom LLM integration.</p>
+                                    </div>
+                                </div>
                             </CardContent>
+                            <CardFooter className="flex justify-end">
+                                <Button onClick={onSave} disabled={saving}>
+                                    {saving ? "Saving..." : "Save Configuration"}
+                                </Button>
+                            </CardFooter>
                         </Card>
                     </TabsContent>
                 </Tabs>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Transcripts & Logs</CardTitle>
-                        <CardDescription>View recent session reports and transcripts from `call_records`.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-sm text-muted-foreground">
-                            No recent calls found.
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
         </div>
     )
