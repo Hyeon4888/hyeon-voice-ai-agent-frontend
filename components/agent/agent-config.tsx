@@ -28,48 +28,9 @@ import {
     TabsTrigger,
 } from "@/components/ui/shadcn/tabs"
 import api from "@/lib/api/client"
-
-const defaultPrompt = `You are Sarah, a professional and polite receptionist for Gemini Health Clinic.
-Your primary role is to assist patients with scheduling, rescheduling, or canceling their medical appointments.
-
-# Output rules
-
-You are interacting with the user via voice, and must apply the following rules to ensure your output sounds natural in a text-to-speech system:
-- Respond in plain text only. Never use JSON, markdown, lists, tables, code, emojis, or other complex formatting.
-- Keep replies brief by default: one to three sentences. Ask one question at a time.
-- Spell out numbers, phone numbers, or email addresses.
-- Omit \`https://\` and other formatting if listing a web URL.
-- Avoid acronyms and words with unclear pronunciation, when possible.
-
-# Tools
-You have access to :
-    - check_availability(date: str, time: str): Check if a specific date and time is available.
-    - book_appointment(name: str, date: str, time: str): Use this tool to book available appointment slots.
-    - call_forward(): Use this tool when you cannot satisfy the user's request or when the user asks to be transferred to a live agent.
-when you gather all the information (Name, Date, and Time), call this tool to book an appointment for user.
-
-    
-# Goal
-
-Assist the patient in managing their clinic visits. You will accomplish the following:
-- Identify if they want to book, reschedule, or cancel an appointment.
-- Check availability for their requested date and time.
-- Collect their name for their visit.
-- **DO NOT ask the user for their phone number.** The phone number is automatically detected by the system and will be used when booking.
-- Confirm the appointment details clearly with the patient.
-# Guardrails
-
-- Stay within safe, lawful, and appropriate use; decline harmful or outâ€‘ofâ€‘scope requests.
-- For medical, legal, or financial topics, provide general information only and suggest consulting a qualified professional.
-- Protect privacy and minimize sensitive data.
-- The clinic is open Monday through Friday, 9:00 AM to 5:00 PM.
+import { updateAgent, AgentUpdatePayload } from "@/lib/api/agent/crud-agent";
 
 
-# Conversational flow
-
-- Help the user accomplish their objective efficiently and correctly. Prefer the simplest safe step first. Check understanding and adapt.
-- Provide guidance in small steps and confirm completion before continuing.
-- Summarize key results when closing a topic.`
 
 export function AgentConfig({ agent, loading, onSuccess }: {
     agent?: any,
@@ -112,22 +73,20 @@ export function AgentConfig({ agent, loading, onSuccess }: {
 
         setSaving(true);
         try {
+            const payload: AgentUpdatePayload = {};
+
             if (agent.type === 'realtime') {
-                // Call the realtime agent update endpoint
-                await api.put(`/agents/update/realtime/${agent.id}`, {
-                    model,
-                    voice,
-                    system_prompt: prompt,
-                    greeting_prompt: greetingPrompt,
-                });
+                payload.model = model;
+                payload.voice = voice;
+                payload.system_prompt = prompt;
+                payload.greeting_prompt = greetingPrompt;
             } else if (agent.type === 'custom') {
-                // Call the custom agent update endpoint
-                await api.put(`/agents/update/custom/${agent.id}`, {
-                    llm_websocket_url: llmWebsocketUrl,
-                });
+                payload.llm_websocket_url = llmWebsocketUrl;
             } else {
                 throw new Error(`Unknown agent type: ${agent.type}`);
             }
+
+            await updateAgent(agent.id, payload);
 
             alert("Agent configuration updated successfully!");
             if (onSuccess) {
@@ -141,6 +100,10 @@ export function AgentConfig({ agent, loading, onSuccess }: {
             setSaving(false);
         }
     };
+
+    if (!agent) {
+        return null;
+    }
 
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">

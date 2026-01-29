@@ -27,6 +27,15 @@ export interface AgentCreatePayload {
     type: 'realtime' | 'custom';
 }
 
+
+export interface AgentUpdatePayload {
+    model?: string;
+    voice?: string;
+    system_prompt?: string;
+    greeting_prompt?: string;
+    llm_websocket_url?: string;
+}
+
 export const createAgent = async (payload: AgentCreatePayload) => {
     const response = await api.post<Agent>('/agents/create', payload);
     return response.data;
@@ -37,9 +46,12 @@ export const getAgents = async () => {
     return response.data;
 };
 
-export const getAgent = async (agentId: string, type: 'realtime' | 'custom') => {
-    const response = await api.get<Agent>(`/agents/get/${agentId}`, {
-        params: { type }
-    });
+export const getAgent = async (agentId: string) => {
+    const response = await api.get<Agent>(`/agents/get/${agentId}`);
+    return response.data;
+};
+
+export const updateAgent = async (agentId: string, payload: AgentUpdatePayload) => {
+    const response = await api.put<Agent>(`/agents/update/${agentId}`, payload);
     return response.data;
 };

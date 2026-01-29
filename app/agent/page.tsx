@@ -9,6 +9,7 @@ import {
     SidebarInset,
     SidebarProvider,
 } from "@/components/ui/shadcn/sidebar"
+import { Agent } from "@/lib/api/agent/crud-agent";
 
 
 import { Button } from "@/components/ui/shadcn/button"
@@ -23,8 +24,8 @@ export default function AgentPage() {
     const [isConnected, setIsConnected] = React.useState(false);
     const [token, setToken] = React.useState<string | null>(null);
     const [url, setUrl] = React.useState<string | null>(null);
-    const [agents, setAgents] = React.useState<any[]>([]);
-    const [selectedAgent, setSelectedAgent] = React.useState<any | null>(null);
+    const [agents, setAgents] = React.useState<Agent[]>([]);
+    const [selectedAgent, setSelectedAgent] = React.useState<Agent | null>(null);
     const [loadingAgent, setLoadingAgent] = React.useState(false);
 
     React.useEffect(() => {
@@ -40,7 +41,7 @@ export default function AgentPage() {
         fetchAgents();
     }, []);
 
-    const handleSelectAgent = async (agent: any) => {
+    const handleSelectAgent = async (agent: Agent) => {
         setLoadingAgent(true);
         try {
             console.log("Selected agent:", agent); // Debug: see what data we have
@@ -49,7 +50,7 @@ export default function AgentPage() {
             const agentType = agent.type || 'realtime';
 
             const { getAgent } = await import("@/lib/api/agent/crud-agent");
-            const agentData = await getAgent(agent.id, agentType);
+            const agentData = await getAgent(agent.id);
             setSelectedAgent(agentData);
         } catch (error) {
             console.error("Failed to fetch agent details", error);
