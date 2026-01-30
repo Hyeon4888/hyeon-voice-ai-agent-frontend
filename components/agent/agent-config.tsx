@@ -70,10 +70,10 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                 setVoice(agent.voice || "coral");
                 setPrompt(agent.system_prompt || "");
                 setGreetingPrompt(agent.greeting_prompt || "");
-                setApiKeyId(agent.api_key_id || "");
+                setApiKeyId(agent.api_key || "");
             } else if (agent.type === 'custom') {
                 setLlmWebsocketUrl(agent.llm_websocket_url || "");
-                setApiKeyId(agent.api_key_id || "");
+                setApiKeyId(agent.api_key || "");
             }
         } else {
             // Reset to empty when no agent selected
@@ -99,10 +99,10 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                 payload.voice = voice;
                 payload.system_prompt = prompt;
                 payload.greeting_prompt = greetingPrompt;
-                payload.api_key_id = apiKeyId;
+                payload.api_key = apiKeyId;
             } else if (agent.type === 'custom') {
                 payload.llm_websocket_url = llmWebsocketUrl;
-                payload.api_key_id = apiKeyId;
+                payload.api_key = apiKeyId;
             } else {
                 throw new Error(`Unknown agent type: ${agent.type}`);
             }

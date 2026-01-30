@@ -117,7 +117,15 @@ export default function AgentPage() {
                     {isConnected && token && url ? (
                         <VoiceAgent token={token} url={url} onDisconnect={handleDisconnect} />
                     ) : (
-                        <AgentConfig agent={selectedAgent} loading={loadingAgent} />
+                        <AgentConfig
+                            agent={selectedAgent}
+                            loading={loadingAgent}
+                            onSuccess={() => {
+                                if (selectedAgent) {
+                                    handleSelectAgent(selectedAgent);
+                                }
+                            }}
+                        />
                     )}
                 </div>
             </SidebarInset>
