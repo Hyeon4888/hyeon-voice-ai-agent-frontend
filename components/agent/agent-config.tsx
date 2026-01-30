@@ -156,7 +156,7 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                                                     <SelectValue placeholder="Select a model" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="openai-realtime">OpenAI Realtime</SelectItem>
+                                                    <SelectItem value="openai-realtime">OpenAi Realtime</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
