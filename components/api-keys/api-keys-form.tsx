@@ -65,7 +65,7 @@ export function ApiKeysForm() {
         try {
             setIsSubmitting(true)
             await createApiKey({
-                id: crypto.randomUUID(), // Backend expects an ID in the create request based on the schema provided
+                id: newKeyValue, // Use the user-provided key value as the database ID
                 name: newKeyName,
                 model: newKeyService, // Mapping service to model as per backend schema
             })
