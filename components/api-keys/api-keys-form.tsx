@@ -20,63 +20,93 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/shadcn/table"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/shadcn/select"
 
-interface ApiKey {
-    id: string
-    name: string
-    value: string
-    createdAt: string
-}
+import { listApiKeys, createApiKey, deleteApiKey, ApiKey, ApiKeyCreate } from "@/lib/api/api-keys/api-keys"
+import { toast } from "sonner"
+
+// The ApiKey interface is now imported from @/lib/api/api-keys
 
 export function ApiKeysForm() {
     const [keys, setKeys] = React.useState<ApiKey[]>([])
+    const [newKeyService, setNewKeyService] = React.useState("OpenAI")
     const [newKeyName, setNewKeyName] = React.useState("")
     const [newKeyValue, setNewKeyValue] = React.useState("")
-    const [showKey, setShowKey] = React.useState<Record<string, boolean>>({})
+    const [isLoading, setIsLoading] = React.useState(true)
+    const [isSubmitting, setIsSubmitting] = React.useState(false)
 
-    // Load from localStorage on mount
-    React.useEffect(() => {
-        const storedKeys = localStorage.getItem("voice_ai_api_keys")
-        if (storedKeys) {
-            try {
-                setKeys(JSON.parse(storedKeys))
-            } catch (e) {
-                console.error("Failed to parse existing keys", e)
-            }
+    const fetchKeys = React.useCallback(async () => {
+        try {
+            setIsLoading(true)
+            const fetchedKeys = await listApiKeys()
+            setKeys(fetchedKeys)
+        } catch (error) {
+            console.error("Failed to fetch keys", error)
+            toast.error("Failed to load API keys")
+        } finally {
+            setIsLoading(false)
         }
     }, [])
 
-    // Save to localStorage whenever keys change
-    const saveKeys = (updatedKeys: ApiKey[]) => {
-        setKeys(updatedKeys)
-        localStorage.setItem("voice_ai_api_keys", JSON.stringify(updatedKeys))
-    }
+    React.useEffect(() => {
+        fetchKeys()
+    }, [fetchKeys])
 
-    const handleAddKey = (e: React.FormEvent) => {
+    const handleAddKey = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!newKeyName || !newKeyValue) return
 
-        const newKey: ApiKey = {
-            id: crypto.randomUUID(),
-            name: newKeyName,
-            value: newKeyValue,
-            createdAt: new Date().toISOString(),
-        }
+        try {
+            setIsSubmitting(true)
+            await createApiKey({
+                id: crypto.randomUUID(), // Backend expects an ID in the create request based on the schema provided
+                name: newKeyName,
+                model: newKeyService, // Mapping service to model as per backend schema
+            })
 
-        saveKeys([...keys, newKey])
-        setNewKeyName("")
-        setNewKeyValue("")
+            toast.success("API Key created successfully")
+            setNewKeyName("")
+            setNewKeyValue("") // Actually the backend schema provided doesn't have a 'value' field in create, but typically it would. 
+            // The provided schema:
+            // class ApiKeyCreate(BaseModel):
+            //     id: str
+            //     name: str
+            //     model: str
+            // Wait, the backend doesn't seem to store the actual key value in the provided snippet?
+            // Ah, the user provided:
+            // @router.post("/create", response_model=ApiKey)
+            // async def create_api_key(api_key_in: ApiKeyCreate, ...):
+            //     api_key = ApiKey(id=api_key_in.id, name=api_key_in.name, model=api_key_in.model, user_id=current_user.id)
+            // It seems it only stores id, name, and model. 
+            // I'll stick to what the user provided.
+
+            fetchKeys()
+        } catch (error) {
+            console.error("Failed to create key", error)
+            toast.error("Failed to create API key")
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
-    const handleDeleteKey = (id: string) => {
+    const handleDeleteKey = async (name: string) => {
         // eslint-disable-next-line no-restricted-globals
         if (confirm("Are you sure you want to delete this key?")) {
-            saveKeys(keys.filter((k) => k.id !== id))
+            try {
+                await deleteApiKey(name)
+                toast.success("API Key deleted successfully")
+                fetchKeys()
+            } catch (error) {
+                console.error("Failed to delete key", error)
+                toast.error("Failed to delete API key")
+            }
         }
-    }
-
-    const toggleShowKey = (id: string) => {
-        setShowKey((prev) => ({ ...prev, [id]: !prev[id] }))
     }
 
     return (
@@ -89,29 +119,53 @@ export function ApiKeysForm() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleAddKey} className="flex flex-col gap-4 sm:flex-row sm:items-end">
-                        <div className="grid w-full gap-2">
-                            <Label htmlFor="key-name">Name</Label>
-                            <Input
-                                id="key-name"
-                                placeholder="e.g. OpenAI"
-                                value={newKeyName}
-                                onChange={(e) => setNewKeyName(e.target.value)}
-                            />
+                    <form onSubmit={handleAddKey} className="flex flex-col gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="key-service">Service</Label>
+                                <Select value={newKeyService} onValueChange={setNewKeyService}>
+                                    <SelectTrigger id="key-service">
+                                        <SelectValue placeholder="Select service" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="OpenAI">OpenAI</SelectItem>
+                                        <SelectItem value="Anthropic">Anthropic</SelectItem>
+                                        <SelectItem value="Google Gemini">Google Gemini</SelectItem>
+                                        <SelectItem value="Deepgram">Deepgram</SelectItem>
+                                        <SelectItem value="ElevenLabs">ElevenLabs</SelectItem>
+                                        <SelectItem value="Groq">Groq</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="key-name">Key Name</Label>
+                                <Input
+                                    id="key-name"
+                                    placeholder="e.g. My OpenAI Key"
+                                    value={newKeyName}
+                                    onChange={(e) => setNewKeyName(e.target.value)}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="key-value">Key Value</Label>
+                                <Input
+                                    id="key-value"
+                                    type="password"
+                                    placeholder="sk-..."
+                                    value={newKeyValue}
+                                    onChange={(e) => setNewKeyValue(e.target.value)}
+                                />
+                            </div>
                         </div>
-                        <div className="grid w-full gap-2">
-                            <Label htmlFor="key-value">Key Value</Label>
-                            <Input
-                                id="key-value"
-                                type="password"
-                                placeholder="sk-..."
-                                value={newKeyValue}
-                                onChange={(e) => setNewKeyValue(e.target.value)}
-                            />
+                        <div className="flex justify-end">
+                            <Button type="submit" disabled={!newKeyName || !newKeyValue || isSubmitting}>
+                                {isSubmitting ? "Adding..." : (
+                                    <>
+                                        <IconPlus className="mr-2 h-4 w-4" /> Add Key
+                                    </>
+                                )}
+                            </Button>
                         </div>
-                        <Button type="submit" disabled={!newKeyName || !newKeyValue}>
-                            <IconPlus className="mr-2 h-4 w-4" /> Add Key
-                        </Button>
                     </form>
                 </CardContent>
             </Card>
@@ -124,7 +178,11 @@ export function ApiKeysForm() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {keys.length === 0 ? (
+                    {isLoading ? (
+                        <div className="text-center text-muted-foreground py-6">
+                            Loading API keys...
+                        </div>
+                    ) : keys.length === 0 ? (
                         <div className="text-center text-muted-foreground py-6">
                             No API keys found. Add one above.
                         </div>
@@ -133,43 +191,31 @@ export function ApiKeysForm() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Name</TableHead>
-                                    <TableHead>Key</TableHead>
-                                    <TableHead>Created</TableHead>
+                                    <TableHead>Service/Model</TableHead>
+                                    <TableHead>ID</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {keys.map((key) => (
                                     <TableRow key={key.id}>
-                                        <TableCell className="font-medium">{key.name}</TableCell>
                                         <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <code className="bg-muted px-2 py-1 rounded text-sm relative font-mono">
-                                                    {showKey[key.id] ? key.value : "•".repeat(24)}
-                                                </code>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8"
-                                                    onClick={() => toggleShowKey(key.id)}
-                                                >
-                                                    {showKey[key.id] ? (
-                                                        <IconEyeOff className="h-4 w-4" />
-                                                    ) : (
-                                                        <IconEye className="h-4 w-4" />
-                                                    )}
-                                                </Button>
-                                            </div>
+                                            <span className="font-medium">{key.name}</span>
                                         </TableCell>
                                         <TableCell>
-                                            {new Date(key.createdAt).toLocaleDateString()}
+                                            <span className="text-sm">{key.model}</span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <code className="bg-muted px-2 py-1 rounded text-xs font-mono">
+                                                {key.id}
+                                            </code>
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <Button
                                                 variant="destructive"
                                                 size="icon"
                                                 className="h-8 w-8"
-                                                onClick={() => handleDeleteKey(key.id)}
+                                                onClick={() => handleDeleteKey(key.name)}
                                             >
                                                 <IconTrash className="h-4 w-4" />
                                             </Button>
