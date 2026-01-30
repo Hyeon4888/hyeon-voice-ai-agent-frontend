@@ -5,13 +5,10 @@ import {
     RoomAudioRenderer,
     BarVisualizer,
     ControlBar,
-    AgentState,
-    useRoomContext,
     useVoiceAssistant,
 } from "@livekit/components-react";
 import "@livekit/components-styles";
-import { useEffect, useState } from "react";
-import { Track } from "livekit-client";
+;
 
 export interface VoiceAgentProps {
     token: string;
