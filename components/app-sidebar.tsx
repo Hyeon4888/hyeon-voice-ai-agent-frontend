@@ -6,6 +6,7 @@ import {
   IconDashboard,
   IconFolder,
   IconHelp,
+  IconHistory,
   IconInnerShadowTop,
   IconKey,
   IconListDetails,
@@ -46,6 +47,11 @@ const data = {
       title: "Agent",
       url: "/agent",
       icon: IconListDetails,
+    },
+    {
+      title: "History",
+      url: "/history",
+      icon: IconHistory,
     },
     {
       title: "Analytics",
