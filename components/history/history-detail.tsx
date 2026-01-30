@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import { History } from "@/lib/api/history/crud-history"
 import { getHistoryDate } from "./history-list"
 import { Separator } from "@/components/ui/shadcn/separator"
