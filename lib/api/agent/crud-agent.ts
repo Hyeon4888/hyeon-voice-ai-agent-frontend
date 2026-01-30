@@ -9,6 +9,7 @@ export interface BaseAgent {
 
 export interface RealtimeAgent extends BaseAgent {
     type: 'realtime';
+    api_key_id?: string;
     model?: string;
     voice?: string;
     system_prompt?: string;
@@ -17,6 +18,7 @@ export interface RealtimeAgent extends BaseAgent {
 
 export interface CustomAgent extends BaseAgent {
     type: 'custom';
+    api_key_id?: string;
     llm_websocket_url?: string;
 }
 
@@ -29,6 +31,7 @@ export interface AgentCreatePayload {
 
 
 export interface AgentUpdatePayload {
+    api_key_id?: string;
     model?: string;
     voice?: string;
     system_prompt?: string;

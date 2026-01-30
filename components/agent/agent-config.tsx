@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/shadcn/tabs"
 import api from "@/lib/api/client"
 import { updateAgent, AgentUpdatePayload } from "@/lib/api/agent/crud-agent";
+import { listApiKeys, ApiKey } from "@/lib/api/api-keys/api-keys";
 
 
 
@@ -43,7 +44,22 @@ export function AgentConfig({ agent, loading, onSuccess }: {
     const [prompt, setPrompt] = React.useState("");
     const [greetingPrompt, setGreetingPrompt] = React.useState("");
     const [llmWebsocketUrl, setLlmWebsocketUrl] = React.useState("");
+    const [apiKeyId, setApiKeyId] = React.useState("");
+    const [apiKeys, setApiKeys] = React.useState<ApiKey[]>([]);
     const [saving, setSaving] = React.useState(false);
+
+    // Fetch API keys on mount
+    React.useEffect(() => {
+        const fetchKeys = async () => {
+            try {
+                const keys = await listApiKeys();
+                setApiKeys(keys);
+            } catch (error) {
+                console.error("Failed to fetch API keys", error);
+            }
+        };
+        fetchKeys();
+    }, []);
 
     // Update form when agent data is loaded
     React.useEffect(() => {
@@ -54,14 +70,17 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                 setVoice(agent.voice || "coral");
                 setPrompt(agent.system_prompt || "");
                 setGreetingPrompt(agent.greeting_prompt || "");
+                setApiKeyId(agent.api_key_id || "");
             } else if (agent.type === 'custom') {
                 setLlmWebsocketUrl(agent.llm_websocket_url || "");
+                setApiKeyId(agent.api_key_id || "");
             }
         } else {
             // Reset to empty when no agent selected
             setName("");
             setPrompt("");
             setGreetingPrompt("");
+            setApiKeyId("");
         }
     }, [agent]);
 
@@ -80,8 +99,10 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                 payload.voice = voice;
                 payload.system_prompt = prompt;
                 payload.greeting_prompt = greetingPrompt;
+                payload.api_key_id = apiKeyId;
             } else if (agent.type === 'custom') {
                 payload.llm_websocket_url = llmWebsocketUrl;
+                payload.api_key_id = apiKeyId;
             } else {
                 throw new Error(`Unknown agent type: ${agent.type}`);
             }
@@ -146,6 +167,24 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                                             onChange={(e) => setName(e.target.value)}
                                         />
                                         <p className="text-sm text-muted-foreground">The name used in CLI and logs.</p>
+                                    </div>
+
+                                    <div className="flex flex-col space-y-1.5">
+                                        <Label htmlFor="api-key">API Key</Label>
+                                        <Select value={apiKeyId} onValueChange={setApiKeyId}>
+                                            <SelectTrigger id="api-key">
+                                                <SelectValue placeholder="Select an API key" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">None</SelectItem>
+                                                {apiKeys.map((key) => (
+                                                    <SelectItem key={key.id} value={key.id}>
+                                                        {key.name} ({key.model})
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <p className="text-sm text-muted-foreground">The API key used by the agent for LLM/Speech services.</p>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
@@ -231,6 +270,24 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                                             onChange={(e) => setName(e.target.value)}
                                         />
                                         <p className="text-sm text-muted-foreground">The name used in CLI and logs.</p>
+                                    </div>
+
+                                    <div className="flex flex-col space-y-1.5">
+                                        <Label htmlFor="custom-api-key">API Key</Label>
+                                        <Select value={apiKeyId} onValueChange={setApiKeyId}>
+                                            <SelectTrigger id="custom-api-key">
+                                                <SelectValue placeholder="Select an API key" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">None</SelectItem>
+                                                {apiKeys.map((key) => (
+                                                    <SelectItem key={key.id} value={key.id}>
+                                                        {key.name} ({key.model})
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <p className="text-sm text-muted-foreground">The API key used by the agent for LLM/Speech services.</p>
                                     </div>
 
                                     <div className="flex flex-col space-y-1.5">
