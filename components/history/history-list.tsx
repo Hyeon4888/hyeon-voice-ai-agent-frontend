@@ -5,68 +5,79 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/shadcn/badge"
 import { ScrollArea } from "@/components/ui/shadcn/scroll-area"
 import { formatDistanceToNow } from "date-fns"
+import { getHistory, History } from "@/lib/api/history/crud-history"
 
-export interface HistoryItem {
-    id: string
-    agentId: string
-    startedAt: Date
-    durationSeconds: number
-    status: "completed" | "failed" | "in-progress"
-    summary: string
-}
-
-// Mock data generator
-const generateMockHistory = (agentId: string): HistoryItem[] => {
-    return Array.from({ length: 10 }).map((_, i) => {
-        const status: "completed" | "failed" | "in-progress" = Math.random() > 0.8 ? "failed" : "completed"
-        return {
-            id: `call-${agentId}-${i}`,
-            agentId,
-            startedAt: new Date(Date.now() - Math.random() * 1000000000),
-            durationSeconds: Math.floor(Math.random() * 600),
-            status,
-            summary: `Call summary for conversation ${i}. This is a mock summary of what happened during the call.`
-        }
-    }).sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())
+// Helper to convert backend date/time to Date object
+export const getHistoryDate = (history: History) => {
+    return new Date(`${history.date}T${history.time}`)
 }
 
 interface HistoryListProps {
     agentId: string
-    onSelectCall: (call: HistoryItem) => void
+    onSelectCall: (call: History) => void
 }
 
 export function HistoryList({ agentId, onSelectCall }: HistoryListProps) {
-    const history = React.useMemo(() => generateMockHistory(agentId), [agentId])
+    const [history, setHistory] = React.useState<History[]>([])
+    const [loading, setLoading] = React.useState(false)
+
+    React.useEffect(() => {
+        const fetchHistory = async () => {
+            setLoading(true)
+            try {
+                const data = await getHistory(agentId)
+                setHistory(data)
+            } catch (error) {
+                console.error("Failed to fetch history", error)
+            } finally {
+                setLoading(false)
+            }
+        }
+        if (agentId) {
+            fetchHistory()
+        }
+    }, [agentId])
+
+    if (loading) {
+        return <div className="p-4 text-center text-muted-foreground">Loading history...</div>
+    }
+
+    if (history.length === 0) {
+        return <div className="p-4 text-center text-muted-foreground">No history found for this agent.</div>
+    }
 
     return (
         <ScrollArea className="h-full">
             <div className="flex flex-col gap-4 p-4">
-                {history.map((item) => (
-                    <Card
-                        key={item.id}
-                        className="cursor-pointer hover:bg-accent transition-colors"
-                        onClick={() => onSelectCall(item)}
-                    >
-                        <CardHeader className="pb-2">
-                            <div className="flex justify-between items-start">
-                                <CardTitle className="text-base">
-                                    {formatDistanceToNow(item.startedAt, { addSuffix: true })}
-                                </CardTitle>
-                                <Badge variant={item.status === "completed" ? "default" : "destructive"}>
-                                    {item.status}
-                                </Badge>
-                            </div>
-                            <CardDescription>
-                                Duration: {Math.floor(item.durationSeconds / 60)}m {item.durationSeconds % 60}s
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                                {item.summary}
-                            </p>
-                        </CardContent>
-                    </Card>
-                ))}
+                {history.map((item) => {
+                    const date = getHistoryDate(item)
+                    return (
+                        <Card
+                            key={item.id}
+                            className="cursor-pointer hover:bg-accent transition-colors"
+                            onClick={() => onSelectCall(item)}
+                        >
+                            <CardHeader className="pb-2">
+                                <div className="flex justify-between items-start">
+                                    <CardTitle className="text-base">
+                                        {formatDistanceToNow(date, { addSuffix: true })}
+                                    </CardTitle>
+                                    <Badge variant="outline">
+                                        Completed
+                                    </Badge>
+                                </div>
+                                <CardDescription>
+                                    Duration: {Math.floor(item.duration / 60)}m {item.duration % 60}s
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                    {item.summary || "No summary available"}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    )
+                })}
             </div>
         </ScrollArea>
     )

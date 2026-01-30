@@ -4,8 +4,9 @@ import * as React from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { HistorySidebar } from "@/components/history/history-sidebar"
-import { HistoryList, HistoryItem } from "@/components/history/history-list"
+import { HistoryList } from "@/components/history/history-list"
 import { HistoryDetail } from "@/components/history/history-detail"
+import { History } from "@/lib/api/history/crud-history"
 import {
     SidebarInset,
     SidebarProvider,
@@ -15,7 +16,7 @@ import { Agent } from "@/lib/api/agent/crud-agent"
 export default function HistoryPage() {
     const [agents, setAgents] = React.useState<Agent[]>([])
     const [selectedAgent, setSelectedAgent] = React.useState<Agent | null>(null)
-    const [selectedCall, setSelectedCall] = React.useState<HistoryItem | null>(null)
+    const [selectedCall, setSelectedCall] = React.useState<History | null>(null)
 
     React.useEffect(() => {
         const fetchAgents = async () => {
