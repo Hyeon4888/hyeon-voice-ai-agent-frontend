@@ -12,6 +12,7 @@ import {
   IconReport,
   IconSearch,
   IconSettings,
+  IconTools,
   IconUsers,
 } from "@tabler/icons-react"
 
@@ -65,6 +66,11 @@ const data = {
       title: "API",
       url: "/api-keys",
       icon: IconKey,
+    },
+    {
+      title: "Tools",
+      url: "/tools",
+      icon: IconTools,
     },
   ],
 

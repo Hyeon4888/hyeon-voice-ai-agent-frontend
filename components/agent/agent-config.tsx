@@ -310,11 +310,7 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                         </Card>
                     </TabsContent>
                 </Tabs>
-
             </div>
         </div>
     )
 }
-
-
-
