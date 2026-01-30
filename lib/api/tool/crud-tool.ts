@@ -4,6 +4,7 @@ export interface Tool {
     id: string;
     name: string;
     user_id: number;
+    appointment_tool: boolean;
 }
 
 export interface ToolCreatePayload {
@@ -27,6 +28,11 @@ export const getTool = async (toolId: string) => {
     return response.data;
 };
 
+
+export const updateTool = async (toolId: string, payload: Partial<Tool>) => {
+    const response = await api.patch<Tool>(`/tools/update/${toolId}`, payload);
+    return response.data;
+};
 
 export const deleteTool = async (toolId: string) => {
     const response = await api.delete(`/tools/delete/${toolId}`);

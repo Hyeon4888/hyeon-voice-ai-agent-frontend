@@ -78,9 +78,11 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                 setPrompt(agent.system_prompt || "");
                 setGreetingPrompt(agent.greeting_prompt || "");
                 setApiKeyId(agent.api_key || "");
+                setSelectedToolId(agent.tool_id || "none");
             } else if (agent.type === 'custom') {
                 setLlmWebsocketUrl(agent.llm_websocket_url || "");
                 setApiKeyId(agent.api_key || "");
+                setSelectedToolId(agent.tool_id || "none");
             }
         } else {
             // Reset to empty when no agent selected
@@ -110,9 +112,9 @@ export function AgentConfig({ agent, loading, onSuccess }: {
             } else if (agent.type === 'custom') {
                 payload.llm_websocket_url = llmWebsocketUrl;
                 payload.api_key = apiKeyId;
-            } else {
-                throw new Error(`Unknown agent type: ${agent.type}`);
             }
+
+            payload.tool_id = selectedToolId === "none" ? null : selectedToolId;
 
             await updateAgent(agent.id, payload);
 
@@ -322,7 +324,7 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                     <CardHeader>
                         <CardTitle>Tools</CardTitle>
                         <CardDescription>
-                            Select a tool for this agent (Placeholder).
+                            Select a tool for this agent.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">

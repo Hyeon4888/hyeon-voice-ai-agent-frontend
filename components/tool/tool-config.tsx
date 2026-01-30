@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/shadcn/card"
 import { Label } from "@/components/ui/shadcn/label"
 import { Switch } from "@/components/ui/shadcn/switch"
-import { Tool, deleteTool } from "@/lib/api/tool/crud-tool"
+import { Tool, deleteTool, updateTool } from "@/lib/api/tool/crud-tool"
 
 export function ToolConfig({ tool, loading, onSuccess }: {
     tool?: Tool | null,
@@ -22,6 +22,7 @@ export function ToolConfig({ tool, loading, onSuccess }: {
     const [saving, setSaving] = React.useState(false);
     const [deleting, setDeleting] = React.useState(false);
     const [isAppointmentTool, setIsAppointmentTool] = React.useState(false);
+    const [toggling, setToggling] = React.useState(false);
 
     React.useEffect(() => {
         if (tool) {
@@ -31,6 +32,22 @@ export function ToolConfig({ tool, loading, onSuccess }: {
         }
     }, [tool]);
 
+
+    const onToggleAppointmentTool = async (checked: boolean) => {
+        if (!tool || !tool.id) return;
+
+        setToggling(true);
+        try {
+            await updateTool(tool.id, { appointment_tool: checked });
+            setIsAppointmentTool(checked);
+            // alert("Tool updated successfully!");
+        } catch (error) {
+            console.error(error);
+            alert("Failed to update tool");
+        } finally {
+            setToggling(false);
+        }
+    }
 
     const onDelete = async () => {
         if (!tool || !tool.id) return;
@@ -88,7 +105,8 @@ export function ToolConfig({ tool, loading, onSuccess }: {
                         </div>
                         <Switch
                             checked={isAppointmentTool}
-                            onCheckedChange={setIsAppointmentTool}
+                            onCheckedChange={onToggleAppointmentTool}
+                            disabled={toggling || loading}
                         />
                     </div>
                 </CardContent>

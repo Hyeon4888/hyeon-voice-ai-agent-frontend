@@ -14,6 +14,7 @@ export interface RealtimeAgent extends BaseAgent {
     voice?: string;
     system_prompt?: string;
     greeting_prompt?: string;
+    tool_id?: string;
 }
 
 export interface CustomAgent extends BaseAgent {
@@ -38,6 +39,7 @@ export interface AgentUpdatePayload {
     system_prompt?: string;
     greeting_prompt?: string;
     llm_websocket_url?: string;
+    tool_id?: string | null;
 }
 
 export const createAgent = async (payload: AgentCreatePayload) => {
