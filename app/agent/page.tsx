@@ -60,9 +60,10 @@ export default function AgentPage() {
     };
 
     const handlePlayAgent = async () => {
+        if (!selectedAgent) return;
         setIsConnecting(true);
         try {
-            const data = await getConnectionDetails();
+            const data = await getConnectionDetails(selectedAgent.id);
             if (data.token && data.url) {
                 setToken(data.token);
                 setUrl(data.url);
@@ -73,6 +74,12 @@ export default function AgentPage() {
         } finally {
             setIsConnecting(false);
         }
+    };
+
+    const handleDisconnect = () => {
+        setIsConnected(false);
+        setToken(null);
+        setUrl(null);
     };
 
     return (
@@ -96,19 +103,19 @@ export default function AgentPage() {
                     <div className="flex items-center justify-between space-y-2 py-4">
                         <h2 className="text-lg font-semibold">Agent Configuration</h2>
                         {!isConnected && (
-                            <Button onClick={handlePlayAgent} disabled={isConnecting}>
+                            <Button onClick={handlePlayAgent} disabled={isConnecting || !selectedAgent}>
                                 <Play className="mr-2 h-4 w-4" />
                                 {isConnecting ? "Connecting..." : "Play agent"}
                             </Button>
                         )}
                         {isConnected && (
-                            <Button variant="destructive" onClick={() => setIsConnected(false)}>
+                            <Button variant="destructive" onClick={handleDisconnect}>
                                 Stop Agent
                             </Button>
                         )}
                     </div>
                     {isConnected && token && url ? (
-                        <VoiceAgent token={token} url={url} />
+                        <VoiceAgent token={token} url={url} onDisconnect={handleDisconnect} />
                     ) : (
                         <AgentConfig agent={selectedAgent} loading={loadingAgent} />
                     )}

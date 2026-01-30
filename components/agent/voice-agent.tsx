@@ -7,12 +7,19 @@ import {
     ControlBar,
     AgentState,
     useRoomContext,
+    useVoiceAssistant,
 } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { useEffect, useState } from "react";
 import { Track } from "livekit-client";
 
-export function VoiceAgent({ token, url }: { token: string; url: string }) {
+export interface VoiceAgentProps {
+    token: string;
+    url: string;
+    onDisconnect: () => void;
+}
+
+export function VoiceAgent({ token, url, onDisconnect }: VoiceAgentProps) {
     return (
         <LiveKitRoom
             token={token}
@@ -20,27 +27,38 @@ export function VoiceAgent({ token, url }: { token: string; url: string }) {
             connect={true}
             audio={true}
             video={false}
+            onDisconnected={onDisconnect}
             className="flex flex-col items-center justify-center gap-4 min-h-[400px] w-full bg-muted/50 rounded-lg border p-4"
         >
+            <SimpleVoiceAssistant />
+            <RoomAudioRenderer />
+            <ControlBar />
+        </LiveKitRoom>
+    );
+}
+
+function SimpleVoiceAssistant() {
+    const { state, audioTrack } = useVoiceAssistant();
+
+    return (
+        <div className="flex flex-col items-center justify-center gap-4 w-full">
             <div className="flex flex-col items-center gap-2">
-                <div className="text-lg font-semibold">Voice Agent Active</div>
-                <div className="text-sm text-muted-foreground">Listening...</div>
+                <div className="text-lg font-semibold">
+                    {state === "speaking" ? "Agent Speaking" : "Agent Listening"}
+                </div>
+                <div className="text-sm text-muted-foreground capitalize">
+                    {state}
+                </div>
             </div>
 
             <div className="flex h-32 w-full items-center justify-center">
                 <BarVisualizer
-                    state="listening"
+                    state={state}
                     barCount={7}
-                    trackRef={{
-                        publication: undefined,
-                        source: Track.Source.Microphone,
-                    }}
+                    trackRef={audioTrack}
                     className="h-full w-full"
                 />
             </div>
-
-            <RoomAudioRenderer />
-            <ControlBar />
-        </LiveKitRoom>
+        </div>
     );
 }
