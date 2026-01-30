@@ -4,7 +4,6 @@ import * as React from "react"
 import { Button } from "@/components/ui/shadcn/button"
 import { Input } from "@/components/ui/shadcn/input"
 import { Label } from "@/components/ui/shadcn/label"
-import { Textarea } from "@/components/ui/shadcn/textarea"
 import { createTool } from "@/lib/api/tool/crud-tool"
 
 interface ToolCreateFormProps {
@@ -13,19 +12,19 @@ interface ToolCreateFormProps {
 }
 
 export function ToolCreateForm({ onSuccess, onCancel }: ToolCreateFormProps) {
+    const [id, setId] = React.useState("")
     const [name, setName] = React.useState("")
-    const [description, setDescription] = React.useState("")
     const [loading, setLoading] = React.useState(false)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!name) return
+        if (!name || !id) return
 
         setLoading(true)
         try {
             await createTool({
+                id,
                 name,
-                description,
             })
             onSuccess()
         } catch (error) {
@@ -39,6 +38,17 @@ export function ToolCreateForm({ onSuccess, onCancel }: ToolCreateFormProps) {
     return (
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
             <div className="space-y-2">
+                <Label htmlFor="id">Tool ID</Label>
+                <Input
+                    id="id"
+                    placeholder="e.g. weather-tool"
+                    value={id}
+                    onChange={(e) => setId(e.target.value)}
+                    required
+                />
+                <p className="text-xs text-muted-foreground">Unique identifier for the tool (slug).</p>
+            </div>
+            <div className="space-y-2">
                 <Label htmlFor="name">Tool Name</Label>
                 <Input
                     id="name"
@@ -48,21 +58,11 @@ export function ToolCreateForm({ onSuccess, onCancel }: ToolCreateFormProps) {
                     required
                 />
             </div>
-            <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                    id="description"
-                    placeholder="Briefly describe what this tool does"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="min-h-[100px]"
-                />
-            </div>
             <div className="flex justify-end space-x-2 pt-4">
                 <Button variant="outline" type="button" onClick={onCancel}>
                     Cancel
                 </Button>
-                <Button type="submit" disabled={loading || !name}>
+                <Button type="submit" disabled={loading || !name || !id}>
                     {loading ? "Creating..." : "Create Tool"}
                 </Button>
             </div>

@@ -30,6 +30,7 @@ import {
 import api from "@/lib/api/client"
 import { updateAgent, AgentUpdatePayload } from "@/lib/api/agent/crud-agent";
 import { listApiKeys, ApiKey } from "@/lib/api/api-keys/api-keys";
+import { getTools, Tool } from "@/lib/api/tool/crud-tool";
 
 
 
@@ -47,15 +48,21 @@ export function AgentConfig({ agent, loading, onSuccess }: {
     const [apiKeyId, setApiKeyId] = React.useState("");
     const [apiKeys, setApiKeys] = React.useState<ApiKey[]>([]);
     const [saving, setSaving] = React.useState(false);
+    const [availableTools, setAvailableTools] = React.useState<Tool[]>([]);
+    const [selectedToolId, setSelectedToolId] = React.useState<string>("none");
 
     // Fetch API keys on mount
     React.useEffect(() => {
         const fetchKeys = async () => {
             try {
-                const keys = await listApiKeys();
+                const [keys, toolsData] = await Promise.all([
+                    listApiKeys(),
+                    getTools()
+                ]);
                 setApiKeys(keys);
+                setAvailableTools(toolsData);
             } catch (error) {
-                console.error("Failed to fetch API keys", error);
+                console.error("Failed to fetch API keys or tools", error);
             }
         };
         fetchKeys();
@@ -310,6 +317,33 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                         </Card>
                     </TabsContent>
                 </Tabs>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Tools</CardTitle>
+                        <CardDescription>
+                            Select a tool for this agent (Placeholder).
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex flex-col space-y-1.5">
+                            <Label htmlFor="agent-tool">Assigned Tool</Label>
+                            <Select value={selectedToolId} onValueChange={setSelectedToolId}>
+                                <SelectTrigger id="agent-tool">
+                                    <SelectValue placeholder="Select a tool" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">None</SelectItem>
+                                    {availableTools.map((tool) => (
+                                        <SelectItem key={tool.id} value={tool.id}>
+                                            {tool.name} ({tool.id})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     )

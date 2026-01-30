@@ -10,54 +10,27 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/shadcn/card"
-import { Input } from "@/components/ui/shadcn/input"
 import { Label } from "@/components/ui/shadcn/label"
-import { Textarea } from "@/components/ui/shadcn/textarea"
 import { Switch } from "@/components/ui/shadcn/switch"
-import { Tool, updateTool, deleteTool } from "@/lib/api/tool/crud-tool"
+import { Tool, deleteTool } from "@/lib/api/tool/crud-tool"
 
 export function ToolConfig({ tool, loading, onSuccess }: {
     tool?: Tool | null,
     loading?: boolean,
     onSuccess?: () => void
 }) {
-    const [name, setName] = React.useState("");
-    const [description, setDescription] = React.useState("");
-    const [enabled, setEnabled] = React.useState(true);
     const [saving, setSaving] = React.useState(false);
     const [deleting, setDeleting] = React.useState(false);
+    const [isAppointmentTool, setIsAppointmentTool] = React.useState(false);
 
     React.useEffect(() => {
         if (tool) {
-            setName(tool.name || "");
-            setDescription(tool.description || "");
-            setEnabled(tool.enabled !== undefined ? tool.enabled : true);
+            setIsAppointmentTool(Boolean((tool as any).appointment_tool));
         } else {
-            setName("");
-            setDescription("");
-            setEnabled(true);
+            setIsAppointmentTool(false);
         }
     }, [tool]);
 
-    const onSave = async () => {
-        if (!tool || !tool.id) return;
-
-        setSaving(true);
-        try {
-            await updateTool(tool.id, {
-                name,
-                description,
-                enabled,
-            });
-            alert("Tool updated successfully!");
-            if (onSuccess) onSuccess();
-        } catch (error) {
-            console.error(error);
-            alert("Failed to update tool");
-        } finally {
-            setSaving(false);
-        }
-    };
 
     const onDelete = async () => {
         if (!tool || !tool.id) return;
@@ -94,42 +67,34 @@ export function ToolConfig({ tool, loading, onSuccess }: {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="flex flex-col space-y-1.5">
-                        <Label htmlFor="tool-name">Tool Name</Label>
-                        <Input
-                            id="tool-name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                        />
+                    <div className="flex flex-col space-y-1.5 pb-4">
+                        <Label className="text-muted-foreground">Tool ID</Label>
+                        <div className="font-mono text-sm bg-muted p-2 rounded-md">
+                            {tool?.id}
+                        </div>
                     </div>
-                    <div className="flex flex-col space-y-1.5">
-                        <Label htmlFor="tool-description">Description</Label>
-                        <Textarea
-                            id="tool-description"
-                            className="min-h-[100px]"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                        />
+                    <div className="flex flex-col space-y-1.5 pb-4">
+                        <Label className="text-muted-foreground">Tool Name</Label>
+                        <div className="text-lg font-medium">
+                            {tool?.name}
+                        </div>
                     </div>
                     <div className="flex items-center justify-between border-t pt-4">
                         <div className="space-y-0.5">
-                            <Label>Enabled</Label>
+                            <Label>Appointment Tool</Label>
                             <p className="text-sm text-muted-foreground">
-                                Toggle this tool on or off for use by agents.
+                                Mark this tool as an appointment-related tool (Placeholder).
                             </p>
                         </div>
                         <Switch
-                            checked={enabled}
-                            onCheckedChange={setEnabled}
+                            checked={isAppointmentTool}
+                            onCheckedChange={setIsAppointmentTool}
                         />
                     </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                    <Button variant="destructive" onClick={onDelete} disabled={deleting || loading}>
+                    <Button variant="destructive" className="w-full" onClick={onDelete} disabled={deleting || loading}>
                         {deleting ? "Deleting..." : "Delete Tool"}
-                    </Button>
-                    <Button onClick={onSave} disabled={saving || loading}>
-                        {saving ? "Saving..." : "Save Configuration"}
                     </Button>
                 </CardFooter>
             </Card>
