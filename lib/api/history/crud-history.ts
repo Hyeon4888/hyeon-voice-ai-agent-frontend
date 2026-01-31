@@ -8,7 +8,7 @@ export interface History {
     time: string;
     duration: number;
     summary?: string;
-    conversation?: string;
+    conversation?: any;
 }
 
 export const getHistory = async (agentId: string) => {

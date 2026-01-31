@@ -47,8 +47,28 @@ export function HistoryDetail({ call, onClose }: HistoryDetailProps) {
 
                 <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-2">Transcript</h4>
-                    <div className="bg-muted p-4 rounded-md space-y-3 text-sm whitespace-pre-wrap font-mono">
-                        {call.conversation || "No transcript available."}
+                    <div className="bg-muted p-4 rounded-md space-y-3 text-sm font-mono overflow-auto max-h-[500px]">
+                        {Array.isArray(call.conversation) ? (
+                            call.conversation.map((msg: any, index: number) => (
+                                <div key={msg.id || index} className="flex flex-col gap-1 border-b border-border/50 pb-2 last:border-0 last:pb-0">
+                                    <div className="flex items-center gap-2">
+                                        <span className={`font-semibold text-xs uppercase ${msg.role === 'agent' ? 'text-primary' : 'text-muted-foreground'}`}>
+                                            {msg.role}
+                                        </span>
+                                        {(msg.created_at || msg.timestamp) && (
+                                            <span className="text-[10px] text-muted-foreground/50">
+                                                {new Date((msg.created_at || msg.timestamp) * (typeof (msg.created_at || msg.timestamp) === 'number' && (msg.created_at || msg.timestamp) < 10000000000 ? 1000 : 1)).toLocaleTimeString()}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <span className="whitespace-pre-wrap text-foreground/90">{msg.content}</span>
+                                </div>
+                            ))
+                        ) : typeof call.conversation === 'object' ? (
+                            <pre className="whitespace-pre-wrap text-xs">{JSON.stringify(call.conversation, null, 2)}</pre>
+                        ) : (
+                            call.conversation || "No transcript available."
+                        )}
                     </div>
                 </div>
             </div>
