@@ -15,6 +15,7 @@ import {
   IconSettings,
   IconTools,
   IconUsers,
+  IconPhone,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -77,6 +78,11 @@ const data = {
       title: "Tools",
       url: "/tools",
       icon: IconTools,
+    },
+    {
+      title: "Phone Numbers",
+      url: "/phone-numbers",
+      icon: IconPhone,
     },
   ],
 
