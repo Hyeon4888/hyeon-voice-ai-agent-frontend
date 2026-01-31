@@ -11,7 +11,7 @@ import {
     CardTitle,
 } from "@/components/ui/shadcn/card"
 import { Label } from "@/components/ui/shadcn/label"
-import { PhoneNumber } from "@/lib/api/phone-numbers/mock-data"
+import { PhoneNumber } from "@/lib/api/phone-numbers/crud-phone-numbers"
 
 export function PhoneNumberConfig({ phoneNumber, loading }: {
     phoneNumber?: PhoneNumber | null,
@@ -51,7 +51,7 @@ export function PhoneNumberConfig({ phoneNumber, loading }: {
                     <div className="flex flex-col space-y-1.5 pb-4">
                         <Label className="text-muted-foreground">Number</Label>
                         <div className="font-mono text-base">
-                            {phoneNumber?.phoneNumber}
+                            {phoneNumber?.number}
                         </div>
                     </div>
                     <div className="flex flex-col space-y-1.5 pb-4">

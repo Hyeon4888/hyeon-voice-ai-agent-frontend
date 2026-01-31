@@ -31,7 +31,7 @@ import api from "@/lib/api/client"
 import { updateAgent, AgentUpdatePayload } from "@/lib/api/agent/crud-agent";
 import { listApiKeys, ApiKey } from "@/lib/api/api-keys/api-keys";
 import { getTools, Tool } from "@/lib/api/tool/crud-tool";
-import { mockPhoneNumbers } from "@/lib/api/phone-numbers/mock-data";
+import { getPhoneNumbers, PhoneNumber } from "@/lib/api/phone-numbers/crud-phone-numbers";
 
 
 
@@ -50,24 +50,27 @@ export function AgentConfig({ agent, loading, onSuccess }: {
     const [apiKeys, setApiKeys] = React.useState<ApiKey[]>([]);
     const [saving, setSaving] = React.useState(false);
     const [availableTools, setAvailableTools] = React.useState<Tool[]>([]);
+    const [phoneNumbers, setPhoneNumbers] = React.useState<PhoneNumber[]>([]);
     const [selectedToolId, setSelectedToolId] = React.useState<string>("none");
     const [inboundNumber, setInboundNumber] = React.useState<string>("none");
 
-    // Fetch API keys on mount
+    // Fetch API keys, tools, and phone numbers on mount
     React.useEffect(() => {
-        const fetchKeys = async () => {
+        const fetchData = async () => {
             try {
-                const [keys, toolsData] = await Promise.all([
+                const [keys, toolsData, phonesData] = await Promise.all([
                     listApiKeys(),
-                    getTools()
+                    getTools(),
+                    getPhoneNumbers()
                 ]);
                 setApiKeys(keys);
                 setAvailableTools(toolsData);
+                setPhoneNumbers(phonesData);
             } catch (error) {
-                console.error("Failed to fetch API keys or tools", error);
+                console.error("Failed to fetch data", error);
             }
         };
-        fetchKeys();
+        fetchData();
     }, []);
 
     // Update form when agent data is loaded
@@ -238,9 +241,9 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="none">None</SelectItem>
-                                                    {mockPhoneNumbers.map((pn) => (
-                                                        <SelectItem key={pn.id} value={pn.phoneNumber}>
-                                                            {pn.label} ({pn.phoneNumber})
+                                                    {phoneNumbers.map((pn) => (
+                                                        <SelectItem key={pn.id} value={pn.number}>
+                                                            {pn.label} ({pn.number})
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>

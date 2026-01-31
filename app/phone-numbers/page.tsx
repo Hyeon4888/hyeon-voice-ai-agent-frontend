@@ -9,26 +9,66 @@ import {
     SidebarInset,
     SidebarProvider,
 } from "@/components/ui/shadcn/sidebar"
-import { mockPhoneNumbers, PhoneNumber } from "@/lib/api/phone-numbers/mock-data"
+import { getPhoneNumbers, PhoneNumber } from "@/lib/api/phone-numbers/crud-phone-numbers"
+
+import { PhoneNumberCreateForm } from "@/components/phone-number/phone-number-create-form"
 
 export default function PhoneNumbersPage() {
-    const [phoneNumbers, setPhoneNumbers] = React.useState<PhoneNumber[]>(mockPhoneNumbers);
+    const [phoneNumbers, setPhoneNumbers] = React.useState<PhoneNumber[]>([]);
     const [selectedPhoneNumber, setSelectedPhoneNumber] = React.useState<PhoneNumber | null>(null);
     const [loading, setLoading] = React.useState(false);
+    const [isCreating, setIsCreating] = React.useState(false);
+
+    React.useEffect(() => {
+        const fetchPhoneNumbers = async () => {
+            try {
+                const data = await getPhoneNumbers();
+                setPhoneNumbers(data);
+                if (data.length > 0 && !selectedPhoneNumber) {
+                    setSelectedPhoneNumber(data[0]);
+                }
+            } catch (error) {
+                console.error("Failed to fetch phone numbers", error);
+            }
+        };
+        fetchPhoneNumbers();
+    }, []);
 
     const handleSelectPhoneNumber = (pn: PhoneNumber) => {
-        setLoading(true);
-        // Simulate network delay
-        setTimeout(() => {
-            setSelectedPhoneNumber(pn);
-            setLoading(false);
-        }, 300);
+        setSelectedPhoneNumber(pn);
+        setIsCreating(false);
     };
 
-    const handleRefresh = () => {
-        // Reset or re-fetch logic if needed
-        setPhoneNumbers([...mockPhoneNumbers]);
+    const handleRefresh = async () => {
+        setLoading(true);
+        try {
+            const data = await getPhoneNumbers();
+            setPhoneNumbers(data);
+            if (!isCreating && !selectedPhoneNumber && data.length > 0) {
+                setSelectedPhoneNumber(data[0]);
+            }
+        } catch (error) {
+            console.error("Failed to refresh phone numbers", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAdd = () => {
+        setIsCreating(true);
         setSelectedPhoneNumber(null);
+    };
+
+    const handleCreateSuccess = async () => {
+        setIsCreating(false);
+        await handleRefresh();
+    };
+
+    const handleCreateCancel = () => {
+        setIsCreating(false);
+        if (phoneNumbers.length > 0) {
+            setSelectedPhoneNumber(phoneNumbers[0]);
+        }
     };
 
     return (
@@ -46,17 +86,27 @@ export default function PhoneNumbersPage() {
                 selectedPhoneNumberId={selectedPhoneNumber?.id}
                 onSelectPhoneNumber={handleSelectPhoneNumber}
                 onRefresh={handleRefresh}
+                onAdd={handleAdd}
             />
             <SidebarInset>
                 <SiteHeader title="Phone Numbers" />
                 <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
                     <div className="flex items-center justify-between space-y-2 py-4">
-                        <h2 className="text-lg font-semibold">Configuration</h2>
+                        <h2 className="text-lg font-semibold">{isCreating ? "Add Phone Number" : "Configuration"}</h2>
                     </div>
-                    <PhoneNumberConfig
-                        phoneNumber={selectedPhoneNumber}
-                        loading={loading}
-                    />
+                    {isCreating ? (
+                        <div className="max-w-xl">
+                            <PhoneNumberCreateForm
+                                onSuccess={handleCreateSuccess}
+                                onCancel={handleCreateCancel}
+                            />
+                        </div>
+                    ) : (
+                        <PhoneNumberConfig
+                            phoneNumber={selectedPhoneNumber}
+                            loading={loading}
+                        />
+                    )}
                 </div>
             </SidebarInset>
         </SidebarProvider>
