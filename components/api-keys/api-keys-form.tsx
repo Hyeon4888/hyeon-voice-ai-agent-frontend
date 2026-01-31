@@ -206,9 +206,11 @@ export function ApiKeysForm() {
                                             <span className="text-sm">{key.model}</span>
                                         </TableCell>
                                         <TableCell>
-                                            <code className="bg-muted px-2 py-1 rounded text-xs font-mono">
-                                                {key.id}
-                                            </code>
+                                            <div className="max-w-[150px] truncate">
+                                                <code className="bg-muted px-2 py-1 rounded text-xs font-mono">
+                                                    ••••••••••••••••
+                                                </code>
+                                            </div>
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <Button
