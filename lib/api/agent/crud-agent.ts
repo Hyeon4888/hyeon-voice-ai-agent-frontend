@@ -15,14 +15,14 @@ export interface RealtimeAgent extends BaseAgent {
     system_prompt?: string;
     greeting_prompt?: string;
     tool_id?: string;
-    inbound_number?: string;
+    inbound_id?: string;
 }
 
 export interface CustomAgent extends BaseAgent {
     type: 'custom';
     api_key?: string;
     llm_websocket_url?: string;
-    inbound_number?: string;
+    inbound_id?: string;
 }
 
 export type Agent = RealtimeAgent | CustomAgent;
@@ -42,7 +42,7 @@ export interface AgentUpdatePayload {
     greeting_prompt?: string;
     llm_websocket_url?: string;
     tool_id?: string | null;
-    inbound_number?: string | null;
+    inbound_id?: string | null;
 }
 
 export const createAgent = async (payload: AgentCreatePayload) => {

@@ -52,7 +52,7 @@ export function AgentConfig({ agent, loading, onSuccess }: {
     const [availableTools, setAvailableTools] = React.useState<Tool[]>([]);
     const [phoneNumbers, setPhoneNumbers] = React.useState<PhoneNumber[]>([]);
     const [selectedToolId, setSelectedToolId] = React.useState<string>("none");
-    const [inboundNumber, setInboundNumber] = React.useState<string>("none");
+    const [inboundId, setInboundId] = React.useState<string>("none");
 
     // Fetch API keys, tools, and phone numbers on mount
     React.useEffect(() => {
@@ -83,13 +83,14 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                 setPrompt(agent.system_prompt || "");
                 setGreetingPrompt(agent.greeting_prompt || "");
                 setApiKeyId(agent.api_key || "");
+                setApiKeyId(agent.api_key || "");
                 setSelectedToolId(agent.tool_id || "none");
-                setInboundNumber(agent.inbound_number || "none");
+                setInboundId(agent.inbound_id || "none");
             } else if (agent.type === 'custom') {
                 setLlmWebsocketUrl(agent.llm_websocket_url || "");
                 setApiKeyId(agent.api_key || "");
                 setSelectedToolId(agent.tool_id || "none");
-                setInboundNumber(agent.inbound_number || "none");
+                setInboundId(agent.inbound_id || "none");
             }
         } else {
             // Reset to empty when no agent selected
@@ -122,7 +123,7 @@ export function AgentConfig({ agent, loading, onSuccess }: {
             }
 
             payload.tool_id = selectedToolId === "none" ? null : selectedToolId;
-            payload.inbound_number = inboundNumber === "none" ? null : inboundNumber;
+            payload.inbound_id = inboundId === "none" ? null : inboundId;
 
             await updateAgent(agent.id, payload);
 
@@ -235,14 +236,14 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="flex flex-col space-y-1.5">
                                             <Label htmlFor="inbound-number">Inbound Number</Label>
-                                            <Select value={inboundNumber} onValueChange={setInboundNumber}>
+                                            <Select value={inboundId} onValueChange={setInboundId}>
                                                 <SelectTrigger id="inbound-number">
                                                     <SelectValue placeholder="Select an inbound number" />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="none">None</SelectItem>
                                                     {phoneNumbers.map((pn) => (
-                                                        <SelectItem key={pn.id} value={pn.number}>
+                                                        <SelectItem key={pn.id} value={pn.id}>
                                                             {pn.label} ({pn.number})
                                                         </SelectItem>
                                                     ))}
