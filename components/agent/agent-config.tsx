@@ -31,6 +31,7 @@ import api from "@/lib/api/client"
 import { updateAgent, AgentUpdatePayload } from "@/lib/api/agent/crud-agent";
 import { listApiKeys, ApiKey } from "@/lib/api/api-keys/api-keys";
 import { getTools, Tool } from "@/lib/api/tool/crud-tool";
+import { mockPhoneNumbers } from "@/lib/api/phone-numbers/mock-data";
 
 
 
@@ -50,6 +51,7 @@ export function AgentConfig({ agent, loading, onSuccess }: {
     const [saving, setSaving] = React.useState(false);
     const [availableTools, setAvailableTools] = React.useState<Tool[]>([]);
     const [selectedToolId, setSelectedToolId] = React.useState<string>("none");
+    const [inboundNumber, setInboundNumber] = React.useState<string>("none");
 
     // Fetch API keys on mount
     React.useEffect(() => {
@@ -79,10 +81,12 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                 setGreetingPrompt(agent.greeting_prompt || "");
                 setApiKeyId(agent.api_key || "");
                 setSelectedToolId(agent.tool_id || "none");
+                setInboundNumber(agent.inbound_number || "none");
             } else if (agent.type === 'custom') {
                 setLlmWebsocketUrl(agent.llm_websocket_url || "");
                 setApiKeyId(agent.api_key || "");
                 setSelectedToolId(agent.tool_id || "none");
+                setInboundNumber(agent.inbound_number || "none");
             }
         } else {
             // Reset to empty when no agent selected
@@ -115,6 +119,7 @@ export function AgentConfig({ agent, loading, onSuccess }: {
             }
 
             payload.tool_id = selectedToolId === "none" ? null : selectedToolId;
+            payload.inbound_number = inboundNumber === "none" ? null : inboundNumber;
 
             await updateAgent(agent.id, payload);
 
@@ -136,8 +141,8 @@ export function AgentConfig({ agent, loading, onSuccess }: {
     }
 
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <div className="col-span-4 lg:col-span-5 space-y-4">
+        <div className="space-y-4">
+            <div className="space-y-4">
                 <Tabs
                     value={agent?.type === 'custom' ? 'customize' : 'realtime'}
                     className="w-full"
@@ -224,6 +229,43 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                                         </div>
                                     </div>
 
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="flex flex-col space-y-1.5">
+                                            <Label htmlFor="inbound-number">Inbound Number</Label>
+                                            <Select value={inboundNumber} onValueChange={setInboundNumber}>
+                                                <SelectTrigger id="inbound-number">
+                                                    <SelectValue placeholder="Select an inbound number" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="none">None</SelectItem>
+                                                    {mockPhoneNumbers.map((pn) => (
+                                                        <SelectItem key={pn.id} value={pn.phoneNumber}>
+                                                            {pn.label} ({pn.phoneNumber})
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <p className="text-sm text-muted-foreground">The phone number assigned to this agent.</p>
+                                        </div>
+                                        <div className="flex flex-col space-y-1.5">
+                                            <Label htmlFor="agent-tool-realtime">Assigned Tool</Label>
+                                            <Select value={selectedToolId} onValueChange={setSelectedToolId}>
+                                                <SelectTrigger id="agent-tool-realtime">
+                                                    <SelectValue placeholder="Select a tool" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="none">None</SelectItem>
+                                                    {availableTools.map((tool) => (
+                                                        <SelectItem key={tool.id} value={tool.id}>
+                                                            {tool.name} ({tool.id})
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <p className="text-sm text-muted-foreground">Select a tool for this agent.</p>
+                                        </div>
+                                    </div>
+
                                     <div className="flex flex-col space-y-1.5">
                                         <Label htmlFor="greeting-prompt">Greeting Prompt</Label>
                                         <Textarea
@@ -246,6 +288,8 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                                             placeholder="Enter the system prompt for your agent..."
                                         />
                                     </div>
+
+
                                 </div>
                             </CardContent>
                             <CardFooter className="flex justify-end">
@@ -281,22 +325,41 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                                         <p className="text-sm text-muted-foreground">The name used in CLI and logs.</p>
                                     </div>
 
-                                    <div className="flex flex-col space-y-1.5">
-                                        <Label htmlFor="custom-api-key">API Key</Label>
-                                        <Select value={apiKeyId} onValueChange={setApiKeyId}>
-                                            <SelectTrigger id="custom-api-key">
-                                                <SelectValue placeholder="Select an API key" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="none">None</SelectItem>
-                                                {apiKeys.map((key) => (
-                                                    <SelectItem key={key.id} value={key.id}>
-                                                        {key.name} ({key.model})
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <p className="text-sm text-muted-foreground">The API key used by the agent for LLM/Speech services.</p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="flex flex-col space-y-1.5">
+                                            <Label htmlFor="custom-api-key">API Key</Label>
+                                            <Select value={apiKeyId} onValueChange={setApiKeyId}>
+                                                <SelectTrigger id="custom-api-key">
+                                                    <SelectValue placeholder="Select an API key" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="none">None</SelectItem>
+                                                    {apiKeys.map((key) => (
+                                                        <SelectItem key={key.id} value={key.id}>
+                                                            {key.name} ({key.model})
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <p className="text-sm text-muted-foreground">The API key used by the agent for LLM/Speech services.</p>
+                                        </div>
+                                        <div className="flex flex-col space-y-1.5">
+                                            <Label htmlFor="agent-tool-custom">Assigned Tool</Label>
+                                            <Select value={selectedToolId} onValueChange={setSelectedToolId}>
+                                                <SelectTrigger id="agent-tool-custom">
+                                                    <SelectValue placeholder="Select a tool" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="none">None</SelectItem>
+                                                    {availableTools.map((tool) => (
+                                                        <SelectItem key={tool.id} value={tool.id}>
+                                                            {tool.name} ({tool.id})
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <p className="text-sm text-muted-foreground">Select a tool for this agent.</p>
+                                        </div>
                                     </div>
 
                                     <div className="flex flex-col space-y-1.5">
@@ -309,6 +372,7 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                                         />
                                         <p className="text-sm text-muted-foreground">WebSocket endpoint for your custom LLM integration.</p>
                                     </div>
+
                                 </div>
                             </CardContent>
                             <CardFooter className="flex justify-end">
@@ -320,32 +384,6 @@ export function AgentConfig({ agent, loading, onSuccess }: {
                     </TabsContent>
                 </Tabs>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Tools</CardTitle>
-                        <CardDescription>
-                            Select a tool for this agent.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex flex-col space-y-1.5">
-                            <Label htmlFor="agent-tool">Assigned Tool</Label>
-                            <Select value={selectedToolId} onValueChange={setSelectedToolId}>
-                                <SelectTrigger id="agent-tool">
-                                    <SelectValue placeholder="Select a tool" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">None</SelectItem>
-                                    {availableTools.map((tool) => (
-                                        <SelectItem key={tool.id} value={tool.id}>
-                                            {tool.name} ({tool.id})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
         </div>
     )
