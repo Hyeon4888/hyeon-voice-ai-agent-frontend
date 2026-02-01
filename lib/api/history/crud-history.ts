@@ -15,3 +15,8 @@ export const getHistory = async (agentId: string) => {
     const response = await api.get<History[]>(`/history/get/${agentId}`);
     return response.data;
 };
+
+export const clearHistory = async (agentId: string) => {
+    const response = await api.delete(`/history/delete_all/${agentId}`);
+    return response.data;
+};
