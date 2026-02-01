@@ -1,46 +1,71 @@
 import api from "../client";
 
-export interface BusinessHours {
-    day: string; // "Monday", "Tuesday", etc.
-    start: string; // "09:00"
-    end: string; // "17:00"
-    isOpen: boolean;
+export interface BusinessHour {
+    id?: number;
+    day: string;
+    start_time: string;
+    end_time: string;
+    is_open: boolean;
 }
 
-const DEFAULT_HOURS: BusinessHours[] = [
-    { day: "Monday", start: "09:00", end: "17:00", isOpen: true },
-    { day: "Tuesday", start: "09:00", end: "17:00", isOpen: true },
-    { day: "Wednesday", start: "09:00", end: "17:00", isOpen: true },
-    { day: "Thursday", start: "09:00", end: "17:00", isOpen: true },
-    { day: "Friday", start: "09:00", end: "17:00", isOpen: true },
-    { day: "Saturday", start: "09:00", end: "17:00", isOpen: false },
-    { day: "Sunday", start: "09:00", end: "17:00", isOpen: false },
+export type BusinessHourUpdatePayload = Partial<Omit<BusinessHour, "id" | "day">>;
+
+const DEFAULT_HOURS: Omit<BusinessHour, "id">[] = [
+    { day: "Monday", start_time: "09:00", end_time: "17:00", is_open: true },
+    { day: "Tuesday", start_time: "09:00", end_time: "17:00", is_open: true },
+    { day: "Wednesday", start_time: "09:00", end_time: "17:00", is_open: true },
+    { day: "Thursday", start_time: "09:00", end_time: "17:00", is_open: true },
+    { day: "Friday", start_time: "09:00", end_time: "17:00", is_open: true },
+    { day: "Saturday", start_time: "09:00", end_time: "17:00", is_open: false },
+    { day: "Sunday", start_time: "09:00", end_time: "17:00", is_open: false },
 ];
 
-// Mock API calls for now
-export const getBusinessHours = async (): Promise<BusinessHours[]> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+export const getBusinessHours = async (): Promise<BusinessHour[]> => {
+    try {
+        const response = await api.get('/business-hours/get');
+        const data = response.data;
 
-    // In a real app, this would be:
-    // const response = await api.get('/settings/business-hours');
-    // return response.data;
+        if (!data || data.length === 0) {
+            // If no data exists, return default structure (without IDs)
+            // The component will handle creating them on save
+            return DEFAULT_HOURS.map(h => ({ ...h }));
+        }
 
-    // Retrieve from local storage to simulate persistence
-    const stored = localStorage.getItem('business_hours');
-    if (stored) {
-        return JSON.parse(stored);
+        // Sort by day to ensure Monday-Sunday order
+        const dayOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        return data.sort((a: BusinessHour, b: BusinessHour) => {
+            return dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day);
+        });
+    } catch (error) {
+        console.error("Error fetching business hours:", error);
+        throw error;
     }
-    return DEFAULT_HOURS;
 };
 
-export const updateBusinessHours = async (hours: BusinessHours[]): Promise<void> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+export const updateBusinessHours = async (hours: BusinessHour[]): Promise<void> => {
+    try {
+        const promises = hours.map(hour => {
+            if (hour.id) {
+                // Update existing record
+                return api.put(`/business-hours/update/${hour.id}`, {
+                    start_time: hour.start_time,
+                    end_time: hour.end_time,
+                    is_open: hour.is_open,
+                });
+            } else {
+                // Create new record
+                return api.post('/business-hours/create', {
+                    day: hour.day,
+                    start_time: hour.start_time,
+                    end_time: hour.end_time,
+                    is_open: hour.is_open,
+                });
+            }
+        });
 
-    // In a real app, this would be:
-    // await api.put('/settings/business-hours', hours);
-
-    // Save to local storage for persistence simulation
-    localStorage.setItem('business_hours', JSON.stringify(hours));
+        await Promise.all(promises);
+    } catch (error) {
+        console.error("Error updating business hours:", error);
+        throw error;
+    }
 };

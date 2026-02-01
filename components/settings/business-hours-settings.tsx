@@ -14,13 +14,13 @@ import { Input } from "@/components/ui/shadcn/input"
 import { Label } from "@/components/ui/shadcn/label"
 import { Switch } from "@/components/ui/shadcn/switch"
 import {
-    BusinessHours,
+    BusinessHour,
     getBusinessHours,
     updateBusinessHours
 } from "@/lib/api/settings/crud-settings"
 
 export function BusinessHoursSettings() {
-    const [hours, setHours] = React.useState<BusinessHours[]>([])
+    const [hours, setHours] = React.useState<BusinessHour[]>([])
     const [loading, setLoading] = React.useState(true)
     const [saving, setSaving] = React.useState(false)
 
@@ -40,11 +40,11 @@ export function BusinessHoursSettings() {
 
     const handleDayToggle = (index: number) => {
         const newHours = [...hours]
-        newHours[index].isOpen = !newHours[index].isOpen
+        newHours[index].is_open = !newHours[index].is_open
         setHours(newHours)
     }
 
-    const handleTimeChange = (index: number, field: 'start' | 'end', value: string) => {
+    const handleTimeChange = (index: number, field: 'start_time' | 'end_time', value: string) => {
         const newHours = [...hours]
         newHours[index][field] = value
         setHours(newHours)
@@ -54,7 +54,9 @@ export function BusinessHoursSettings() {
         setSaving(true)
         try {
             await updateBusinessHours(hours)
-            // You might want to show a toast here
+            // Re-fetch to get IDs for any newly created records
+            const data = await getBusinessHours()
+            setHours(data)
             alert("Business hours saved successfully")
         } catch (error) {
             console.error("Failed to save business hours", error)
@@ -89,25 +91,25 @@ export function BusinessHoursSettings() {
                         <div key={day.day} className="flex items-center justify-between space-x-4 rounded-lg border p-3">
                             <div className="flex items-center space-x-4">
                                 <Switch
-                                    checked={day.isOpen}
+                                    checked={day.is_open}
                                     onCheckedChange={() => handleDayToggle(index)}
                                 />
                                 <Label className="text-base font-medium w-24">{day.day}</Label>
                             </div>
 
-                            {day.isOpen ? (
+                            {day.is_open ? (
                                 <div className="flex items-center space-x-2">
                                     <Input
                                         type="time"
-                                        value={day.start}
-                                        onChange={(e) => handleTimeChange(index, 'start', e.target.value)}
+                                        value={day.start_time}
+                                        onChange={(e) => handleTimeChange(index, 'start_time', e.target.value)}
                                         className="w-32"
                                     />
                                     <span>to</span>
                                     <Input
                                         type="time"
-                                        value={day.end}
-                                        onChange={(e) => handleTimeChange(index, 'end', e.target.value)}
+                                        value={day.end_time}
+                                        onChange={(e) => handleTimeChange(index, 'end_time', e.target.value)}
                                         className="w-32"
                                     />
                                 </div>
@@ -122,7 +124,7 @@ export function BusinessHoursSettings() {
             </CardContent>
             <CardFooter className="flex justify-end">
                 <Button onClick={onSave} disabled={saving}>
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? "Saving..." : (hours.length > 0 && !hours[0].id ? "Create" : "Save Changes")}
                 </Button>
             </CardFooter>
         </Card>
