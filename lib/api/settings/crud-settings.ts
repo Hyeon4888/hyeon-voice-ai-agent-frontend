@@ -31,9 +31,15 @@ export const getBusinessHours = async (): Promise<BusinessHour[]> => {
             return DEFAULT_HOURS.map(h => ({ ...h }));
         }
 
+        // Map backend isOpen to frontend is_open
+        const mappedData = data.map((item: any) => ({
+            ...item,
+            is_open: item.isOpen // Map isOpen from backend to is_open
+        }));
+
         // Sort by day to ensure Monday-Sunday order
         const dayOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-        return data.sort((a: BusinessHour, b: BusinessHour) => {
+        return mappedData.sort((a: BusinessHour, b: BusinessHour) => {
             return dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day);
         });
     } catch (error) {
@@ -45,21 +51,23 @@ export const getBusinessHours = async (): Promise<BusinessHour[]> => {
 export const updateBusinessHours = async (hours: BusinessHour[]): Promise<void> => {
     try {
         const promises = hours.map(hour => {
+            const payload = {
+                day: hour.day,
+                start_time: hour.start_time,
+                end_time: hour.end_time,
+                isOpen: hour.is_open, // Map frontend is_open to backend isOpen
+            };
+
             if (hour.id) {
                 // Update existing record
                 return api.put(`/business-hours/update/${hour.id}`, {
                     start_time: hour.start_time,
                     end_time: hour.end_time,
-                    is_open: hour.is_open,
+                    isOpen: hour.is_open,
                 });
             } else {
                 // Create new record
-                return api.post('/business-hours/create', {
-                    day: hour.day,
-                    start_time: hour.start_time,
-                    end_time: hour.end_time,
-                    is_open: hour.is_open,
-                });
+                return api.post('/business-hours/create', payload);
             }
         });
 
